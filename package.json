@@ -1,13 +1,19 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "ow2-gradient-text-generator",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "Generate beautiful gradient text for Overwatch 2 chat with customizable colors",
+  "keywords": ["overwatch", "gradient", "text", "chat", "gaming", "react", "typescript"],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\""
   },
   "dependencies": {
     "lucide-react": "^0.344.0",
@@ -25,9 +31,13 @@
     "eslint-plugin-react-refresh": "^0.4.11",
     "globals": "^15.9.0",
     "postcss": "^8.4.35",
+    "prettier": "^3.0.0",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.3.0",
     "vite": "^5.4.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

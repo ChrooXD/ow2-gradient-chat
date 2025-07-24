@@ -1,272 +1,189 @@
-import React, { useState, useCallback } from 'react';
-import { Copy, Palette, Type, RefreshCw, Check } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { RefreshCw } from 'lucide-react';
+
+// Components
+import { TextInput } from './components/TextInput';
+import { ColorPicker } from './components/ColorPicker';
+import { PresetButtons } from './components/PresetButtons';
+import { GradientPreview } from './components/GradientPreview';
+import { FormattedOutput } from './components/FormattedOutput';
+
+// Hooks
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useDebounce } from './hooks/useDebounce';
+
+// Utils & Types
+import { generateGradient, generateMultiColorGradient } from './utils/colorUtils';
+import { DEFAULT_COLORS, KEYBOARD_SHORTCUTS } from './constants/gradients';
+import { GradientPreset } from './types';
 
 function App() {
+  // State
   const [text, setText] = useState('');
-  const [startColor, setStartColor] = useState('#FF3300');
-  const [endColor, setEndColor] = useState('#FFFF00');
-  const [copied, setCopied] = useState(false);
+  const [startColor, setStartColor] = useState(DEFAULT_COLORS.start);
+  const [endColor, setEndColor] = useState(DEFAULT_COLORS.end);
+  const [selectedPreset, setSelectedPreset] = useState<GradientPreset | null>(null);
 
-  // Convert hex to RGB
-  const hexToRgb = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : { r: 0, g: 0, b: 0 };
-  };
+  // Debounced text for performance
+  const debouncedText = useDebounce(text, 100);
 
-  // Convert RGB to hex
-  const rgbToHex = (r: number, g: number, b: number) => {
-    const toHex = (n: number) => Math.round(n).toString(16).padStart(2, '0').toUpperCase();
-    return `${toHex(r)}${toHex(g)}${toHex(b)}`;
-  };
-
-  // Generate gradient colors
-  const generateGradient = useCallback((text: string, startColor: string, endColor: string) => {
-    if (!text || text.length === 0) return [];
-    
-    const startRgb = hexToRgb(startColor);
-    const endRgb = hexToRgb(endColor);
-    const length = text.length;
-    
-    if (length === 1) {
-      return [{ char: text[0], color: startColor.replace('#', '') }];
+  // Memoized gradient calculation
+  const gradientData = useMemo(() => {
+    if (selectedPreset) {
+      return generateMultiColorGradient(debouncedText, selectedPreset.colors);
     }
+    return generateGradient(debouncedText, startColor, endColor);
+  }, [debouncedText, startColor, endColor, selectedPreset]);
 
-    return text.split('').map((char, index) => {
-      const ratio = index / (length - 1);
-      const r = startRgb.r + (endRgb.r - startRgb.r) * ratio;
-      const g = startRgb.g + (endRgb.g - startRgb.g) * ratio;
-      const b = startRgb.b + (endRgb.b - startRgb.b) * ratio;
-      
-      return {
-        char,
-        color: rgbToHex(r, g, b)
-      };
-    });
-  }, []);
+  const formattedOutput = useMemo(() => 
+    gradientData.map(({ char, color }) => `<FG${color}>${char}`).join(''),
+    [gradientData]
+  );
 
-  const gradientData = generateGradient(text, startColor, endColor);
-  const formattedOutput = gradientData.map(({ char, color }) => `<FG${color}>${char}`).join('');
-
-  const copyToClipboard = async () => {
-    if (!formattedOutput) return;
-    
-    try {
-      await navigator.clipboard.writeText(formattedOutput);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
-    }
-  };
-
-  const clearAll = () => {
+  // Handlers
+  const handleClearAll = () => {
     setText('');
-    setStartColor('#FF3300');
-    setEndColor('#FFFF00');
+    setStartColor(DEFAULT_COLORS.start);
+    setEndColor(DEFAULT_COLORS.end);
+    setSelectedPreset(null);
   };
 
-  const presetGradients = [
-    { name: 'Fire', start: '#FF3300', end: '#FFFF00' },
-    { name: 'Ocean', start: '#008080', end: '#80C0FF' },
-    { name: 'Sunset', start: '#FF6B35', end: '#F7931E' },
-    { name: 'Purple', start: '#800080', end: '#DDA0DD' },
-    { name: 'Rainbow', start: '#FF0000', end: '#FF00FF' },
-    { name: 'Gray Fade', start: '#202020', end: '#C0C0C0' },
-    { name: 'Ice', start: '#E0FFFF', end: '#B0E0E6' },
-    { name: 'Neon Glow', start: '#00FF00', end: '#99FFCC' },
-    { name: 'Fade In', start: '#10FFFFFF', end: '#FFFFFFFF' },
-    { name: 'Gold Rush', start: '#FFD700', end: '#FFA500' }
-  ];
+  const handlePresetSelect = (preset: GradientPreset) => {
+    setSelectedPreset(preset);
+    // Also update the color pickers to show the first and last color of the preset
+    if (preset.colors.length >= 2) {
+      setStartColor(preset.colors[0]);
+      setEndColor(preset.colors[preset.colors.length - 1]);
+    }
+  };
+
+  const handleColorChange = (colorType: 'start' | 'end', color: string) => {
+    // Clear preset selection when manually changing colors
+    setSelectedPreset(null);
+    if (colorType === 'start') {
+      setStartColor(color);
+    } else {
+      setEndColor(color);
+    }
+  };
+
+  const focusTextInput = () => {
+    const textInput = document.getElementById('text-input');
+    textInput?.focus();
+  };
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    [KEYBOARD_SHORTCUTS.CLEAR]: handleClearAll,
+    [KEYBOARD_SHORTCUTS.FOCUS_TEXT]: focusTextInput,
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="p-3 bg-white/10 backdrop-blur-sm rounded-2xl">
-              <Palette className="w-8 h-8 text-purple-300" />
-            </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Gradient Text Generator
+        <header className="text-center mb-12">
+          <div className="mb-4">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              OW2 Chat Gradient Text Generator
             </h1>
           </div>
-          <p className="text-slate-300 text-lg max-w-2xl mx-auto">
-            Create beautiful color gradients for your text with custom formatting output
+          <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto">
           </p>
-        </div>
+        </header>
 
-        <div className="max-w-4xl mx-auto">
-          <div className="grid gap-8 lg:grid-cols-2">
+        <main className="max-w-6xl mx-auto">
+          <div className="grid gap-6 lg:gap-8 lg:grid-cols-2">
             {/* Input Section */}
-            <div className="space-y-6">
-              <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
-                <h2 className="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
-                  <Type className="w-6 h-6" />
-                  Input Settings
+            <section 
+              className="space-y-6"
+              aria-label="Input settings"
+            >
+              <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-6 sm:p-8 border border-white/20">
+                <h2 className="text-xl sm:text-2xl font-semibold text-white mb-6 flex items-center gap-2">
+                  <span className="sr-only">Input</span>
+                  Settings
+                  {selectedPreset && (
+                    <span className="text-sm font-normal text-purple-300 ml-2">
+                      ({selectedPreset.name})
+                    </span>
+                  )}
                 </h2>
                 
                 {/* Text Input */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-slate-300">
-                    Enter Your Text
-                  </label>
-                  <input
-                    type="text"
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    placeholder="Type your text here..."
-                    className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                <TextInput
+                  value={text}
+                  onChange={setText}
+                  placeholder="Type your text here..."
+                />
+
+                {/* Color Pickers */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                  <ColorPicker
+                    label="Start Color"
+                    value={startColor}
+                    onChange={(color) => handleColorChange('start', color)}
+                    id="startColorPicker"
+                    hoverColor="border-blue-400"
+                  />
+                  
+                  <ColorPicker
+                    label="End Color"
+                    value={endColor}
+                    onChange={(color) => handleColorChange('end', color)}
+                    id="endColorPicker"
+                    hoverColor="border-purple-400"
                   />
                 </div>
 
-                {/* Color Pickers */}
-                <div className="grid grid-cols-2 gap-4 mt-6">
-                  <div className="space-y-3">
-                    <label className="block text-sm font-medium text-slate-300">
-                      Start Color (Click to Pick)
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="color"
-                        value={startColor}
-                        onChange={(e) => setStartColor(e.target.value)}
-                        className="w-16 h-16 rounded-xl border-3 border-white/40 bg-transparent cursor-pointer hover:border-blue-400 transition-all duration-200 hover:scale-105 shadow-lg"
-                      />
-                      <input
-                        type="text"
-                        value={startColor}
-                        onChange={(e) => setStartColor(e.target.value)}
-                        className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <label className="block text-sm font-medium text-slate-300">
-                      End Color (Click to Pick)
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="color"
-                        value={endColor}
-                        onChange={(e) => setEndColor(e.target.value)}
-                        className="w-16 h-16 rounded-xl border-3 border-white/40 bg-transparent cursor-pointer hover:border-purple-400 transition-all duration-200 hover:scale-105 shadow-lg"
-                      />
-                      <input
-                        type="text"
-                        value={endColor}
-                        onChange={(e) => setEndColor(e.target.value)}
-                        className="flex-1 px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Preset Gradients */}
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-slate-300 mb-3">
-                    Quick Presets
-                  </label>
-                  <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto">
-                    {presetGradients.map((preset) => (
-                      <button
-                        key={preset.name}
-                        onClick={() => {
-                          setStartColor(preset.start);
-                          setEndColor(preset.end);
-                        }}
-                        className="px-2 py-1.5 bg-white/5 hover:bg-white/10 border border-white/20 rounded-lg text-xs text-white transition-all duration-200 hover:scale-105"
-                      >
-                        {preset.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                {/* Presets */}
+                <PresetButtons onPresetSelect={handlePresetSelect} />
 
                 {/* Actions */}
-                <div className="flex gap-3 mt-6">
+                <div className="flex flex-wrap gap-3 mt-6">
                   <button
-                    onClick={clearAll}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/20 rounded-lg text-white transition-all duration-200 hover:scale-105"
+                    onClick={handleClearAll}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/20 rounded-lg text-white transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/30"
+                    aria-label="Clear all settings and reset to defaults"
                   >
-                    <RefreshCw className="w-4 h-4" />
-                    Clear
+                    <RefreshCw className="w-4 h-4" aria-hidden="true" />
+                    Clear All
                   </button>
+                  
+                  <div className="text-xs text-slate-400 flex items-center gap-2 ml-auto">
+                    <kbd className="px-2 py-1 bg-white/10 rounded text-xs">Ctrl+Shift+C</kbd>
+                    <span>Clear</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </section>
 
             {/* Output Section */}
-            <div className="space-y-6">
+            <section 
+              className="space-y-6"
+              aria-label="Preview and output"
+            >
               {/* Preview */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
-                <h2 className="text-2xl font-semibold text-white mb-6">Preview</h2>
-                <div className="bg-black/30 rounded-xl p-6 min-h-[80px] flex items-center justify-center">
-                  {text ? (
-                    <div className="text-4xl font-bold tracking-wider">
-                      {gradientData.map((item, index) => (
-                        <span key={index} style={{ color: `#${item.color}` }}>
-                          {item.char}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-slate-400 text-lg">Enter text to see preview</p>
-                  )}
-                </div>
-              </div>
+              <GradientPreview
+                gradientData={gradientData}
+                text={debouncedText}
+              />
 
               {/* Output */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-semibold text-white">Formatted Output</h2>
-                  {formattedOutput && (
-                    <button
-                      onClick={copyToClipboard}
-                      disabled={!formattedOutput}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 hover:scale-105"
-                    >
-                      {copied ? (
-                        <>
-                          <Check className="w-4 h-4" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-4 h-4" />
-                          Copy
-                        </>
-                      )}
-                    </button>
-                  )}
-                </div>
-                
-                <div className="bg-black/30 rounded-xl p-4">
-                  {formattedOutput ? (
-                    <pre className="text-green-400 text-sm font-mono whitespace-pre-wrap break-all">
-                      {formattedOutput}
-                    </pre>
-                  ) : (
-                    <p className="text-slate-400 text-center py-8">
-                      Your formatted output will appear here
-                    </p>
-                  )}
-                </div>
-              </div>
-
-            </div>
+              <FormattedOutput
+                formattedOutput={formattedOutput}
+                text={debouncedText}
+              />
+            </section>
           </div>
-        </div>
+        </main>
 
         {/* Footer */}
-        <div className="text-center mt-16 text-slate-400">
-          <p>Create beautiful gradients with precise color control</p>
-        </div>
+        <footer className="relative mt-16">
+          <div className="absolute bottom-0 right-4 text-xs text-slate-500">
+            made by Chroo :)
+          </div>
+        </footer>
       </div>
     </div>
   );
