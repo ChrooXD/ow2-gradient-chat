@@ -14,7 +14,7 @@ A web application for generating gradient text for Overwatch 2 chat using color 
 ## Quick Start
 
 ```bash
-git clone <repository-url>
+git clone <https://github.com/ChrooXD/ow2-gradient-chat.git>
 cd ow2-gradient-text-generator
 npm install
 npm run dev
