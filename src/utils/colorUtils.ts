@@ -1,4 +1,4 @@
-import { RGB, GradientChar } from '../types';
+import { RGB, RGBA, GradientChar } from '../types';
 
 /**
  * Validates if a string is a valid hex color
@@ -27,6 +27,17 @@ export const hexToRgb = (hex: string): RGB => {
 };
 
 /**
+ * Convert hex color to RGBA values
+ */
+export const hexToRgba = (hex: string, alpha: number = 255): RGBA => {
+  const rgb = hexToRgb(hex);
+  return {
+    ...rgb,
+    a: Math.max(0, Math.min(255, Math.round(alpha)))
+  };
+};
+
+/**
  * Convert RGB values to hex color
  */
 export const rgbToHex = (r: number, g: number, b: number): string => {
@@ -39,11 +50,39 @@ export const rgbToHex = (r: number, g: number, b: number): string => {
 };
 
 /**
+ * Convert RGBA values to hex color with alpha
+ */
+export const rgbaToHex = (r: number, g: number, b: number, a: number): string => {
+  const toHex = (n: number): string => {
+    const clamped = Math.max(0, Math.min(255, Math.round(n)));
+    return clamped.toString(16).padStart(2, '0').toUpperCase();
+  };
+  
+  return `${toHex(r)}${toHex(g)}${toHex(b)}${toHex(a)}`;
+};
+
+/**
+ * Convert alpha value (0-255) to percentage (0-100)
+ */
+export const alphaToPercentage = (alpha: number): number => {
+  return Math.round((alpha / 255) * 100);
+};
+
+/**
+ * Convert percentage (0-100) to alpha value (0-255)
+ */
+export const percentageToAlpha = (percentage: number): number => {
+  return Math.round((percentage / 100) * 255);
+};
+
+/**
  * Generate gradient with multiple color stops
  */
 export const generateMultiColorGradient = (
   text: string,
-  colors: string[]
+  colors: string[],
+  startAlpha: number = 255,
+  endAlpha: number = 255
 ): GradientChar[] => {
   if (!text || text.length === 0) return [];
   if (colors.length < 2) return [];
@@ -52,12 +91,13 @@ export const generateMultiColorGradient = (
   const validColors = colors.filter(isValidHexColor);
   if (validColors.length < 2) {
     console.warn('Not enough valid colors provided');
-    return text.split('').map(char => ({ char, color: '000000' }));
+    return text.split('').map(char => ({ char, color: '000000FF' }));
   }
   
   const length = text.length;
   if (length === 1) {
-    return [{ char: text[0], color: validColors[0].replace('#', '') }];
+    const rgba = hexToRgba(validColors[0], startAlpha);
+    return [{ char: text[0], color: rgbaToHex(rgba.r, rgba.g, rgba.b, rgba.a) }];
   }
 
   return text.split('').map((char, index) => {
@@ -82,9 +122,12 @@ export const generateMultiColorGradient = (
     const g = startColor.g + (endColor.g - startColor.g) * segmentRatio;
     const b = startColor.b + (endColor.b - startColor.b) * segmentRatio;
     
+    // Interpolate alpha
+    const alpha = startAlpha + (endAlpha - startAlpha) * ratio;
+    
     return {
       char,
-      color: rgbToHex(r, g, b)
+      color: rgbaToHex(r, g, b, alpha)
     };
   });
 };
@@ -95,9 +138,11 @@ export const generateMultiColorGradient = (
 export const generateGradient = (
   text: string, 
   startColor: string, 
-  endColor: string
+  endColor: string,
+  startAlpha: number = 255,
+  endAlpha: number = 255
 ): GradientChar[] => {
-  return generateMultiColorGradient(text, [startColor, endColor]);
+  return generateMultiColorGradient(text, [startColor, endColor], startAlpha, endAlpha);
 };
 
 /**

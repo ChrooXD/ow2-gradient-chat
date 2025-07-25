@@ -4,9 +4,13 @@ export interface RGB {
   b: number;
 }
 
+export interface RGBA extends RGB {
+  a: number; // Alpha value 0-255
+}
+
 export interface GradientChar {
   char: string;
-  color: string;
+  color: string; // Now includes alpha: RRGGBBAA
 }
 
 export interface GradientPreset {
@@ -21,6 +25,13 @@ export interface ColorInputProps {
   onChange: (color: string) => void;
   id: string;
   hoverColor: string;
+  disabled?: boolean;
+}
+
+export interface TransparencyInputProps {
+  label: string;
+  value: number; // 0-255
+  onChange: (alpha: number) => void;
   disabled?: boolean;
 }
 

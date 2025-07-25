@@ -4,6 +4,7 @@ import { RefreshCw } from 'lucide-react';
 // Components
 import { TextInput } from './components/TextInput';
 import { ColorPicker } from './components/ColorPicker';
+import { TransparencyInput } from './components/TransparencyInput';
 import { PresetButtons } from './components/PresetButtons';
 import { GradientPreview } from './components/GradientPreview';
 import { FormattedOutput } from './components/FormattedOutput';
@@ -13,7 +14,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useDebounce } from './hooks/useDebounce';
 
 // Utils & Types
-import { generateGradient, generateMultiColorGradient } from './utils/colorUtils';
+import { generateGradient, generateMultiColorGradient, rgbaToHex, hexToRgba } from './utils/colorUtils';
 import { DEFAULT_COLORS, KEYBOARD_SHORTCUTS } from './constants/gradients';
 import { GradientPreset } from './types';
 
@@ -24,6 +25,8 @@ function App() {
   const [text, setText] = useState('');
   const [startColor, setStartColor] = useState(DEFAULT_COLORS.start);
   const [endColor, setEndColor] = useState(DEFAULT_COLORS.end);
+  const [startAlpha, setStartAlpha] = useState(255); // Fully opaque
+  const [endAlpha, setEndAlpha] = useState(255); // Fully opaque
   const [selectedPreset, setSelectedPreset] = useState<GradientPreset | null>(null);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>('gradient');
 
@@ -33,26 +36,29 @@ function App() {
   // Memoized gradient calculation
   const gradientData = useMemo(() => {
     if (selectedPreset) {
-      return generateMultiColorGradient(debouncedText, selectedPreset.colors);
+      return generateMultiColorGradient(debouncedText, selectedPreset.colors, startAlpha, endAlpha);
     }
-    return generateGradient(debouncedText, startColor, endColor);
-  }, [debouncedText, startColor, endColor, selectedPreset]);
+    return generateGradient(debouncedText, startColor, endColor, startAlpha, endAlpha);
+  }, [debouncedText, startColor, endColor, startAlpha, endAlpha, selectedPreset]);
 
   const formattedOutput = useMemo(() => {
     if (outputFormat === 'solid') {
-      // Use start color for solid output, format: <FGRRGGBB> text...
-      const colorWithoutHash = startColor.replace('#', '');
-      return debouncedText ? `<FG${colorWithoutHash}> ${debouncedText}` : '';
+      // Use start color for solid output, format: <FGRRGGBBAA> text...
+      const rgba = hexToRgba(startColor, startAlpha);
+      const colorWithAlpha = rgbaToHex(rgba.r, rgba.g, rgba.b, rgba.a);
+      return debouncedText ? `<FG${colorWithAlpha}> ${debouncedText}` : '';
     }
-    // Gradient output: <FG#RRGGBB>char for each character
+    // Gradient output: <FGRRGGBBAA>char for each character
     return gradientData.map(({ char, color }) => `<FG${color}>${char}`).join('');
-  }, [gradientData, debouncedText, startColor, outputFormat]);
+  }, [gradientData, debouncedText, startColor, startAlpha, outputFormat]);
 
   // Handlers
   const handleClearAll = () => {
     setText('');
     setStartColor(DEFAULT_COLORS.start);
     setEndColor(DEFAULT_COLORS.end);
+    setStartAlpha(255);
+    setEndAlpha(255);
     setSelectedPreset(null);
     setOutputFormat('gradient');
   };
@@ -182,6 +188,23 @@ function App() {
                   )}
                 </div>
 
+                {/* Transparency Controls */}
+                <div className={`grid gap-4 mt-6 ${outputFormat === 'solid' ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
+                  <TransparencyInput
+                    label={outputFormat === 'solid' ? 'Text Transparency' : 'Start Transparency'}
+                    value={startAlpha}
+                    onChange={setStartAlpha}
+                  />
+                  
+                  {outputFormat === 'gradient' && (
+                    <TransparencyInput
+                      label="End Transparency"
+                      value={endAlpha}
+                      onChange={setEndAlpha}
+                    />
+                  )}
+                </div>
+
                 {/* Presets */}
                 {outputFormat === 'gradient' && (
                   <PresetButtons onPresetSelect={handlePresetSelect} />
@@ -217,6 +240,7 @@ function App() {
                 text={debouncedText}
                 outputFormat={outputFormat}
                 startColor={startColor}
+                startAlpha={startAlpha}
               />
 
               {/* Output */}
