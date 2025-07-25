@@ -17,12 +17,15 @@ import { generateGradient, generateMultiColorGradient } from './utils/colorUtils
 import { DEFAULT_COLORS, KEYBOARD_SHORTCUTS } from './constants/gradients';
 import { GradientPreset } from './types';
 
+type OutputFormat = 'gradient' | 'solid';
+
 function App() {
   // State
   const [text, setText] = useState('');
   const [startColor, setStartColor] = useState(DEFAULT_COLORS.start);
   const [endColor, setEndColor] = useState(DEFAULT_COLORS.end);
   const [selectedPreset, setSelectedPreset] = useState<GradientPreset | null>(null);
+  const [outputFormat, setOutputFormat] = useState<OutputFormat>('gradient');
 
   // Debounced text for performance
   const debouncedText = useDebounce(text, 100);
@@ -35,10 +38,15 @@ function App() {
     return generateGradient(debouncedText, startColor, endColor);
   }, [debouncedText, startColor, endColor, selectedPreset]);
 
-  const formattedOutput = useMemo(() => 
-    gradientData.map(({ char, color }) => `<FG${color}>${char}`).join(''),
-    [gradientData]
-  );
+  const formattedOutput = useMemo(() => {
+    if (outputFormat === 'solid') {
+      // Use start color for solid output, format: <FGRRGGBB> text...
+      const colorWithoutHash = startColor.replace('#', '');
+      return debouncedText ? `<FG${colorWithoutHash}> ${debouncedText}` : '';
+    }
+    // Gradient output: <FG#RRGGBB>char for each character
+    return gradientData.map(({ char, color }) => `<FG${color}>${char}`).join('');
+  }, [gradientData, debouncedText, startColor, outputFormat]);
 
   // Handlers
   const handleClearAll = () => {
@@ -46,6 +54,7 @@ function App() {
     setStartColor(DEFAULT_COLORS.start);
     setEndColor(DEFAULT_COLORS.end);
     setSelectedPreset(null);
+    setOutputFormat('gradient');
   };
 
   const handlePresetSelect = (preset: GradientPreset) => {
@@ -117,27 +126,66 @@ function App() {
                   placeholder="Type your text here..."
                 />
 
+                {/* Output Format Toggle */}
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-white mb-3">
+                    Output Format
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setOutputFormat('gradient')}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        outputFormat === 'gradient'
+                          ? 'bg-blue-600 text-white shadow-lg'
+                          : 'bg-white/10 text-slate-300 hover:bg-white/20'
+                      }`}
+                    >
+                      Gradient
+                    </button>
+                    <button
+                      onClick={() => setOutputFormat('solid')}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        outputFormat === 'solid'
+                          ? 'bg-blue-600 text-white shadow-lg'
+                          : 'bg-white/10 text-slate-300 hover:bg-white/20'
+                      }`}
+                    >
+                      Solid Color
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-2">
+                    {outputFormat === 'gradient' 
+                      ? 'Each character gets its own color (longer output)'
+                      : 'Single color for all text (shorter output)'
+                    }
+                  </p>
+                </div>
+
                 {/* Color Pickers */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                <div className={`grid gap-4 mt-6 ${outputFormat === 'solid' ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
                   <ColorPicker
-                    label="Start Color"
+                    label={outputFormat === 'solid' ? 'Text Color' : 'Start Color'}
                     value={startColor}
                     onChange={(color) => handleColorChange('start', color)}
                     id="startColorPicker"
                     hoverColor="border-blue-400"
                   />
                   
-                  <ColorPicker
-                    label="End Color"
-                    value={endColor}
-                    onChange={(color) => handleColorChange('end', color)}
-                    id="endColorPicker"
-                    hoverColor="border-purple-400"
-                  />
+                  {outputFormat === 'gradient' && (
+                    <ColorPicker
+                      label="End Color"
+                      value={endColor}
+                      onChange={(color) => handleColorChange('end', color)}
+                      id="endColorPicker"
+                      hoverColor="border-purple-400"
+                    />
+                  )}
                 </div>
 
                 {/* Presets */}
-                <PresetButtons onPresetSelect={handlePresetSelect} />
+                {outputFormat === 'gradient' && (
+                  <PresetButtons onPresetSelect={handlePresetSelect} />
+                )}
 
                 {/* Actions */}
                 <div className="flex flex-wrap gap-3 mt-6">
@@ -167,12 +215,15 @@ function App() {
               <GradientPreview
                 gradientData={gradientData}
                 text={debouncedText}
+                outputFormat={outputFormat}
+                startColor={startColor}
               />
 
               {/* Output */}
               <FormattedOutput
                 formattedOutput={formattedOutput}
                 text={debouncedText}
+                outputFormat={outputFormat}
               />
             </section>
           </div>

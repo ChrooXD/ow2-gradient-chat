@@ -21,6 +21,7 @@ export interface ColorInputProps {
   onChange: (color: string) => void;
   id: string;
   hoverColor: string;
+  disabled?: boolean;
 }
 
 export interface AppState {

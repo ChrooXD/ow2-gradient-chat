@@ -7,15 +7,20 @@ export const ColorPicker: React.FC<ColorInputProps> = ({
   value,
   onChange,
   id,
-  hoverColor
+  hoverColor,
+  disabled = false
 }) => {
   const colorInputRef = useRef<HTMLInputElement>(null);
 
   const handleColorBoxClick = () => {
-    colorInputRef.current?.click();
+    if (!disabled) {
+      colorInputRef.current?.click();
+    }
   };
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (disabled) return;
+    
     const newValue = e.target.value;
     if (newValue.startsWith('#') || newValue === '') {
       onChange(newValue);
@@ -25,6 +30,8 @@ export const ColorPicker: React.FC<ColorInputProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled) return;
+    
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       handleColorBoxClick();
@@ -37,7 +44,7 @@ export const ColorPicker: React.FC<ColorInputProps> = ({
     <div className="space-y-3">
       <label 
         htmlFor={`${id}-text`}
-        className="block text-sm font-medium text-slate-300"
+        className={`block text-sm font-medium ${disabled ? 'text-slate-500' : 'text-slate-300'}`}
       >
         {label}
       </label>
@@ -45,7 +52,7 @@ export const ColorPicker: React.FC<ColorInputProps> = ({
         <div 
           className="relative"
           role="button"
-          tabIndex={0}
+          tabIndex={disabled ? -1 : 0}
           aria-label={`${label} color picker`}
           onKeyDown={handleKeyDown}
         >
@@ -57,12 +64,17 @@ export const ColorPicker: React.FC<ColorInputProps> = ({
             className="absolute inset-0 w-20 h-20 opacity-0 cursor-pointer"
             id={id}
             aria-label={`${label} color input`}
+            disabled={disabled}
           />
           <div
-            className={`w-20 h-20 rounded-xl border-3 cursor-pointer transition-all duration-200 hover:scale-105 shadow-lg ${
-              isValid 
-                ? `border-white/40 hover:${hoverColor}` 
-                : 'border-red-400 hover:border-red-300'
+            className={`w-20 h-20 rounded-xl border-3 transition-all duration-200 shadow-lg ${
+              disabled 
+                ? 'cursor-not-allowed opacity-50 border-white/20' 
+                : `cursor-pointer hover:scale-105 ${
+                    isValid 
+                      ? `border-white/40 hover:${hoverColor}` 
+                      : 'border-red-400 hover:border-red-300'
+                  }`
             }`}
             style={{ backgroundColor: isValid ? value : '#ff0000' }}
             onClick={handleColorBoxClick}
@@ -70,7 +82,7 @@ export const ColorPicker: React.FC<ColorInputProps> = ({
             tabIndex={-1}
             aria-hidden="true"
           />
-          {!isValid && (
+          {!isValid && !disabled && (
             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
               <span className="text-white text-xs">!</span>
             </div>
@@ -81,16 +93,19 @@ export const ColorPicker: React.FC<ColorInputProps> = ({
             type="text"
             value={value}
             onChange={handleTextChange}
+            disabled={disabled}
             className={`w-full px-3 py-2 bg-white/5 border rounded-lg text-white text-sm focus:outline-none focus:ring-2 transition-colors ${
-              isValid 
-                ? 'border-white/20 focus:ring-blue-500' 
-                : 'border-red-400 focus:ring-red-500'
+              disabled 
+                ? 'cursor-not-allowed opacity-50 border-white/10'
+                : isValid 
+                  ? 'border-white/20 focus:ring-blue-500' 
+                  : 'border-red-400 focus:ring-red-500'
             }`}
             id={`${id}-text`}
-            aria-describedby={!isValid ? `${id}-error` : undefined}
+            aria-describedby={!isValid && !disabled ? `${id}-error` : undefined}
             placeholder="#FFFFFF"
           />
-          {!isValid && (
+          {!isValid && !disabled && (
             <p 
               id={`${id}-error`}
               className="text-red-400 text-xs mt-1"

@@ -5,11 +5,13 @@ import { COPY_FEEDBACK_DURATION } from '../constants/gradients';
 interface FormattedOutputProps {
   formattedOutput: string;
   text: string;
+  outputFormat?: 'gradient' | 'solid';
 }
 
 export const FormattedOutput: React.FC<FormattedOutputProps> = ({
   formattedOutput,
-  text
+  text,
+  outputFormat = 'gradient'
 }) => {
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState<string | null>(null);
@@ -36,12 +38,29 @@ export const FormattedOutput: React.FC<FormattedOutputProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `gradient-text-${Date.now()}.txt`;
+    a.download = `${outputFormat}-text-${Date.now()}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
+  const getFormatInfo = () => {
+    if (outputFormat === 'solid') {
+      return {
+        name: 'Solid Color',
+        description: 'Single color code format',
+        length: formattedOutput.length
+      };
+    }
+    return {
+      name: 'Gradient',
+      description: 'OW2 Chat Color Codes',
+      length: formattedOutput.length
+    };
+  };
+
+  const formatInfo = getFormatInfo();
 
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
@@ -93,9 +112,15 @@ export const FormattedOutput: React.FC<FormattedOutputProps> = ({
               {formattedOutput}
             </pre>
             <div className="mt-3 pt-3 border-t border-white/10">
-              <p className="text-xs text-slate-400">
-                Format: OW2 Chat Color Codes • Length: {formattedOutput.length} characters
-              </p>
+              <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
+                <span>Format: {formatInfo.name}</span>
+                <span>Length: {formatInfo.length} characters</span>
+                {outputFormat === 'gradient' && text && (
+                  <span>
+                    Colors: {text.length} individual
+                  </span>
+                )}
+              </div>
             </div>
           </>
         ) : (

@@ -4,11 +4,15 @@ import { GradientChar } from '../types';
 interface GradientPreviewProps {
   gradientData: GradientChar[];
   text: string;
+  outputFormat?: 'gradient' | 'solid';
+  startColor?: string;
 }
 
 export const GradientPreview: React.FC<GradientPreviewProps> = ({
   gradientData,
-  text
+  text,
+  outputFormat = 'gradient',
+  startColor = '#FFFFFF'
 }) => {
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
@@ -18,22 +22,28 @@ export const GradientPreview: React.FC<GradientPreviewProps> = ({
       <div 
         className="bg-black/30 rounded-xl p-6 min-h-[80px] flex items-center justify-center"
         role="img"
-        aria-label={text ? `Gradient preview of: ${text}` : 'Preview area'}
+        aria-label={text ? `${outputFormat} preview of: ${text}` : 'Preview area'}
       >
         {text ? (
           <div 
             className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-wider break-all text-center leading-relaxed"
             style={{ wordBreak: 'break-word' }}
           >
-            {gradientData.map((item, index) => (
-              <span 
-                key={index} 
-                style={{ color: `#${item.color}` }}
-                className="inline-block"
-              >
-                {item.char === ' ' ? '\u00A0' : item.char}
+            {outputFormat === 'solid' ? (
+              <span style={{ color: startColor }}>
+                {text}
               </span>
-            ))}
+            ) : (
+              gradientData.map((item, index) => (
+                <span 
+                  key={index} 
+                  style={{ color: `#${item.color}` }}
+                  className="inline-block"
+                >
+                  {item.char === ' ' ? '\u00A0' : item.char}
+                </span>
+              ))
+            )}
           </div>
         ) : (
           <p className="text-slate-400 text-lg text-center">
@@ -44,7 +54,10 @@ export const GradientPreview: React.FC<GradientPreviewProps> = ({
       {text && (
         <div className="mt-4 text-center">
           <p className="text-xs text-slate-400">
-            Colors transition from your start color to end color across {text.length} character{text.length !== 1 ? 's' : ''}
+            {outputFormat === 'solid' 
+              ? `Single color applied to all ${text.length} character${text.length !== 1 ? 's' : ''}`
+              : `Colors transition from your start color to end color across ${text.length} character${text.length !== 1 ? 's' : ''}`
+            }
           </p>
         </div>
       )}
