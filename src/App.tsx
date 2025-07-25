@@ -174,7 +174,7 @@ function App() {
         if (input) {
           const newCursorPosition = cursorPosition + iconCode.length;
           input.setSelectionRange(newCursorPosition, newCursorPosition);
-          input.focus();
+          // Don't focus the input to prevent scrolling to top
         }
       }, 0);
     } else {
