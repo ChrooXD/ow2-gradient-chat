@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { MAX_TEXT_LENGTH } from '../constants/gradients';
 
 interface TextInputProps {
@@ -7,11 +7,11 @@ interface TextInputProps {
   placeholder?: string;
 }
 
-export const TextInput: React.FC<TextInputProps> = ({
+export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(({
   value,
   onChange,
   placeholder = "Type your text here..."
-}) => {
+}, ref) => {
   const isAtLimit = value.length >= MAX_TEXT_LENGTH;
   const isNearLimit = value.length >= MAX_TEXT_LENGTH * 0.8;
 
@@ -45,6 +45,7 @@ export const TextInput: React.FC<TextInputProps> = ({
         </span>
       </div>
       <input
+        ref={ref}
         id="text-input"
         type="text"
         value={value}
@@ -72,4 +73,4 @@ export const TextInput: React.FC<TextInputProps> = ({
       )}
     </div>
   );
-}; 
+}); 

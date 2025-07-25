@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { RefreshCw } from 'lucide-react';
 
 // Components
@@ -32,6 +32,9 @@ function App() {
   const [endAlpha, setEndAlpha] = useState(255); // Fully opaque
   const [selectedPreset, setSelectedPreset] = useState<GradientPreset | null>(null);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>('gradient');
+
+  // Ref for text input to track cursor position
+  const textInputRef = useRef<HTMLInputElement>(null);
 
   // Debounced text for performance
   const debouncedText = useDebounce(text, 100);
@@ -119,8 +122,7 @@ function App() {
   };
 
   const focusTextInput = () => {
-    const textInput = document.getElementById('text-input');
-    textInput?.focus();
+    textInputRef.current?.focus();
   };
 
   // Check for consecutive icons without text between them
@@ -159,9 +161,26 @@ function App() {
   }, [text]);
 
   const handleIconSelect = (iconCode: string) => {
-    setText(prevText => prevText + iconCode);
-    // Don't focus the text input to prevent scrolling to top
-    // focusTextInput();
+    const input = textInputRef.current;
+    if (input) {
+      const cursorPosition = input.selectionStart || 0;
+      setText(prevText => {
+        const newText = prevText.slice(0, cursorPosition) + iconCode + prevText.slice(cursorPosition);
+        return newText;
+      });
+      
+      // Set cursor position after the inserted icon code
+      setTimeout(() => {
+        if (input) {
+          const newCursorPosition = cursorPosition + iconCode.length;
+          input.setSelectionRange(newCursorPosition, newCursorPosition);
+          input.focus();
+        }
+      }, 0);
+    } else {
+      // Fallback to appending at the end if ref is not available
+      setText(prevText => prevText + iconCode);
+    }
   };
 
   // Keyboard shortcuts
@@ -204,6 +223,7 @@ function App() {
                 
                 {/* Text Input */}
                 <TextInput
+                  ref={textInputRef}
                   value={text}
                   onChange={setText}
                   placeholder="Type your text here..."
