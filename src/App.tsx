@@ -8,17 +8,20 @@ import { TransparencyInput } from './components/TransparencyInput';
 import { PresetButtons } from './components/PresetButtons';
 import { GradientPreview } from './components/GradientPreview';
 import { FormattedOutput } from './components/FormattedOutput';
+import { IconSelector } from './components/IconSelector';
 
 // Hooks
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useDebounce } from './hooks/useDebounce';
 
 // Utils & Types
-import { generateGradient, generateMultiColorGradient, rgbaToHex, hexToRgba } from './utils/colorUtils';
+import { generateGradient, generateMultiColorGradient, generateGradientWithIcons, rgbaToHex, hexToRgba } from './utils/colorUtils';
 import { DEFAULT_COLORS, KEYBOARD_SHORTCUTS } from './constants/gradients';
 import { GradientPreset } from './types';
 
 type OutputFormat = 'gradient' | 'solid';
+
+const MAX_ICONS_PER_MESSAGE = 4;
 
 function App() {
   // State
@@ -36,20 +39,53 @@ function App() {
   // Memoized gradient calculation
   const gradientData = useMemo(() => {
     if (selectedPreset) {
-      return generateMultiColorGradient(debouncedText, selectedPreset.colors, startAlpha, endAlpha);
+      return generateGradientWithIcons(debouncedText, selectedPreset.colors, startAlpha, endAlpha);
     }
-    return generateGradient(debouncedText, startColor, endColor, startAlpha, endAlpha);
+    return generateGradientWithIcons(debouncedText, [startColor, endColor], startAlpha, endAlpha);
   }, [debouncedText, startColor, endColor, startAlpha, endAlpha, selectedPreset]);
 
   const formattedOutput = useMemo(() => {
     if (outputFormat === 'solid') {
-      // Use start color for solid output, format: <FGRRGGBBAA> text...
+      // For solid color, group consecutive text characters and apply color code once
       const rgba = hexToRgba(startColor, startAlpha);
       const colorWithAlpha = rgbaToHex(rgba.r, rgba.g, rgba.b, rgba.a);
-      return debouncedText ? `<FG${colorWithAlpha}> ${debouncedText}` : '';
+      
+      const result: string[] = [];
+      let currentTextGroup = '';
+      
+      for (const { char, color } of gradientData) {
+        if (color === '') {
+          // This is an icon
+          if (currentTextGroup) {
+            // Add the accumulated text with color code
+            result.push(`<FG${colorWithAlpha}>${currentTextGroup}`);
+            currentTextGroup = '';
+          }
+          // Add the icon as-is
+          result.push(char);
+        } else {
+          // This is regular text, accumulate it
+          currentTextGroup += char;
+        }
+      }
+      
+      // Don't forget any remaining text at the end
+      if (currentTextGroup) {
+        result.push(`<FG${colorWithAlpha}>${currentTextGroup}`);
+      }
+      
+      return result.join('');
     }
-    // Gradient output: <FGRRGGBBAA>char for each character
-    return gradientData.map(({ char, color }) => `<FG${color}>${char}`).join('');
+    
+    // Gradient output: handle icons and colored text separately
+    return gradientData.map(({ char, color }) => {
+      // If it's an icon (empty color), return as-is
+      if (color === '') {
+        return char;
+      }
+      // Otherwise, apply gradient color formatting
+      return `<FG${color}>${char}`;
+    }).join('');
   }, [gradientData, debouncedText, startColor, startAlpha, outputFormat]);
 
   // Handlers
@@ -85,6 +121,47 @@ function App() {
   const focusTextInput = () => {
     const textInput = document.getElementById('text-input');
     textInput?.focus();
+  };
+
+  // Check for consecutive icons without text between them
+  const checkConsecutiveIcons = (text: string): { hasConsecutiveIcons: boolean; maxConsecutive: number } => {
+    const iconRegex = /<TX[C]?[0-9A-Fa-f]+>/gi;
+    let match;
+    let lastEnd = 0;
+    let consecutiveCount = 0;
+    let maxConsecutive = 0;
+    let hasConsecutiveIcons = false;
+
+    while ((match = iconRegex.exec(text)) !== null) {
+      const textBetween = text.slice(lastEnd, match.index).trim();
+      
+      if (textBetween === '') {
+        // No text between icons, increment consecutive count
+        consecutiveCount++;
+      } else {
+        // Text found, reset consecutive count
+        maxConsecutive = Math.max(maxConsecutive, consecutiveCount);
+        consecutiveCount = 1; // Current icon starts a new sequence
+      }
+      
+      lastEnd = match.index + match[0].length;
+    }
+    
+    maxConsecutive = Math.max(maxConsecutive, consecutiveCount);
+    hasConsecutiveIcons = maxConsecutive > MAX_ICONS_PER_MESSAGE;
+    
+    return { hasConsecutiveIcons, maxConsecutive };
+  };
+
+  // Check consecutive icons status
+  const iconStatus = useMemo(() => {
+    return checkConsecutiveIcons(text);
+  }, [text]);
+
+  const handleIconSelect = (iconCode: string) => {
+    setText(prevText => prevText + iconCode);
+    // Don't focus the text input to prevent scrolling to top
+    // focusTextInput();
   };
 
   // Keyboard shortcuts
@@ -251,6 +328,16 @@ function App() {
               />
             </section>
           </div>
+
+          {/* Icon Selector Section */}
+          <section className="mt-8" aria-label="Icon codes">
+            <IconSelector 
+            onIconSelect={handleIconSelect} 
+            hasConsecutiveIcons={iconStatus.hasConsecutiveIcons}
+            maxConsecutive={iconStatus.maxConsecutive}
+            maxIcons={MAX_ICONS_PER_MESSAGE}
+          />
+          </section>
         </main>
 
         {/* Footer */}

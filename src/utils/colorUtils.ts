@@ -1,4 +1,4 @@
-import { RGB, RGBA, GradientChar } from '../types';
+import { RGB, RGBA, GradientChar, TextSegment } from '../types';
 
 /**
  * Validates if a string is a valid hex color
@@ -164,4 +164,186 @@ export const getContrastRatio = (color1: string, color2: string): number => {
   const darkest = Math.min(lum1, lum2);
   
   return (brightest + 0.05) / (darkest + 0.05);
+};
+
+
+
+/**
+ * Parse text and separate icon codes from regular text
+ */
+export const parseTextWithIcons = (text: string): TextSegment[] => {
+  if (!text) return [];
+  
+  // Regular expression to match Overwatch icon codes: <TX[C]?[0-9A-Fa-f]+>
+  const iconRegex = /<TX[C]?[0-9A-Fa-f]+>/gi;
+  const segments: TextSegment[] = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = iconRegex.exec(text)) !== null) {
+    // Add text before the icon (if any)
+    if (match.index > lastIndex) {
+      const textBefore = text.substring(lastIndex, match.index);
+      if (textBefore.length > 0) {
+        segments.push({ content: textBefore, isIcon: false });
+      }
+    }
+    
+    // Add the icon
+    segments.push({ content: match[0], isIcon: true });
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Add any remaining text after the last icon
+  if (lastIndex < text.length) {
+    const remainingText = text.substring(lastIndex);
+    if (remainingText.length > 0) {
+      segments.push({ content: remainingText, isIcon: false });
+    }
+  }
+  
+  return segments;
+};
+
+/**
+ * Generate gradient for text with icons, preserving icon codes
+ */
+export const generateGradientWithIcons = (
+  text: string,
+  colors: string[],
+  startAlpha: number = 255,
+  endAlpha: number = 255
+): GradientChar[] => {
+  const segments = parseTextWithIcons(text);
+  const result: GradientChar[] = [];
+  
+  // First, collect all non-icon text to calculate gradient positions
+  const nonIconSegments = segments.filter(segment => !segment.isIcon);
+  const totalNonIconLength = nonIconSegments.reduce((sum, segment) => sum + segment.content.length, 0);
+  
+  if (totalNonIconLength === 0) {
+    // Only icons, no gradient needed
+    return segments.map(segment => ({ char: segment.content, color: '' }));
+  }
+  
+  let nonIconCharIndex = 0;
+  
+  for (const segment of segments) {
+    if (segment.isIcon) {
+      // Add icon as-is without any color formatting
+      result.push({ char: segment.content, color: '' });
+    } else {
+      // Apply gradient to regular text
+      const segmentGradient = segment.content.split('').map((char, localIndex) => {
+        const globalIndex = nonIconCharIndex + localIndex;
+        const ratio = totalNonIconLength === 1 ? 0 : globalIndex / (totalNonIconLength - 1);
+        
+        // Calculate which color segment we're in
+        const segmentSize = 1 / (colors.length - 1);
+        const segmentIndex = Math.min(
+          Math.floor(ratio / segmentSize),
+          colors.length - 2
+        );
+        
+        // Calculate position within the segment (0-1)
+        const segmentRatio = (ratio - segmentIndex * segmentSize) / segmentSize;
+        
+        // Get the two colors to interpolate between
+        const startColor = hexToRgb(colors[segmentIndex]);
+        const endColor = hexToRgb(colors[segmentIndex + 1]);
+        
+        // Interpolate between the two colors
+        const r = startColor.r + (endColor.r - startColor.r) * segmentRatio;
+        const g = startColor.g + (endColor.g - startColor.g) * segmentRatio;
+        const b = startColor.b + (endColor.b - startColor.b) * segmentRatio;
+        
+        // Interpolate alpha
+        const alpha = startAlpha + (endAlpha - startAlpha) * ratio;
+        
+        return {
+          char,
+          color: rgbaToHex(r, g, b, alpha)
+        };
+      });
+      
+      result.push(...segmentGradient);
+      nonIconCharIndex += segment.content.length;
+    }
+  }
+  
+  return result;
+};
+
+/**
+ * Split formatted output into chunks of maximum 200 characters
+ * Preserves color codes and icon codes, tries to split at word boundaries
+ */
+export const splitFormattedOutput = (formattedOutput: string, maxLength: number = 200): string[] => {
+  if (!formattedOutput || formattedOutput.length <= maxLength) {
+    return [formattedOutput];
+  }
+
+  const chunks: string[] = [];
+  let currentChunk = '';
+  let i = 0;
+
+  while (i < formattedOutput.length && chunks.length < 4) {
+    const remainingLength = maxLength - currentChunk.length;
+    
+    // If we're at the start of a color code or icon code, don't split it
+    if (formattedOutput[i] === '<' && (
+        formattedOutput.substring(i).match(/^<FG[0-9A-Fa-f]{8}>/) ||
+        formattedOutput.substring(i).match(/^<TX[C]?[0-9A-Fa-f]+>/)
+      )) {
+      
+      // Find the end of the code
+      let codeEnd = formattedOutput.indexOf('>', i);
+      if (codeEnd !== -1) {
+        const code = formattedOutput.substring(i, codeEnd + 1);
+        
+        // If adding this code would exceed the limit, start a new chunk
+        if (currentChunk.length + code.length > maxLength && currentChunk.length > 0) {
+          chunks.push(currentChunk);
+          currentChunk = code;
+        } else {
+          currentChunk += code;
+        }
+        i = codeEnd + 1;
+        continue;
+      }
+    }
+
+    // If we have space for at least one more character
+    if (remainingLength > 0) {
+      currentChunk += formattedOutput[i];
+      i++;
+    } else {
+      // Try to find a good breaking point (space or word boundary)
+      let breakPoint = currentChunk.length;
+      for (let j = currentChunk.length - 1; j >= Math.max(0, currentChunk.length - 20); j--) {
+        if (currentChunk[j] === ' ') {
+          breakPoint = j;
+          break;
+        }
+      }
+      
+      // If we found a good break point, use it
+      if (breakPoint < currentChunk.length && breakPoint > currentChunk.length * 0.8) {
+        const splitChunk = currentChunk.substring(0, breakPoint);
+        chunks.push(splitChunk);
+        currentChunk = currentChunk.substring(breakPoint + 1); // Skip the space
+      } else {
+        // Otherwise, just split at the limit
+        chunks.push(currentChunk);
+        currentChunk = '';
+      }
+    }
+  }
+
+  // Add the remaining chunk if it has content
+  if (currentChunk.length > 0) {
+    chunks.push(currentChunk);
+  }
+
+  return chunks;
 }; 

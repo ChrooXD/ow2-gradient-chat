@@ -40,4 +40,9 @@ export interface AppState {
   startColor: string;
   endColor: string;
   copied: boolean;
+}
+
+export interface TextSegment {
+  content: string;
+  isIcon: boolean;
 } 
