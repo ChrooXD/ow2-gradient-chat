@@ -133,8 +133,12 @@ export const ICON_CATEGORIES: IconCategory[] = [
       { name: "Packet Loss", code: "<TX0C0000000000894E>" },
       { name: "Pink Mercy Event Heart", code: "<TX0C00000000017112>" },
       { name: "Person Target", code: "<TX0C0000000000A82A>" },
-      { name: "Summer Games", code: "<TX0C0000000000ABAD>" }
-    ]
+      { name: "Summer Games", code: "<TX0C0000000000ABAD>" },
+      { name: "Black to White Gradient", code: "<TXC00000000000001>" },
+      { name: "Purple Square", code: "<TXC00000000000002>" },
+      { name: "Rainbow Squares", code: "<TXC00000000000003>" },
+      { name: "Black to Red Gradient", code: "<TXC00000000000004>" },
+      ]
   },
   {
     name: "Heroes/Misc",

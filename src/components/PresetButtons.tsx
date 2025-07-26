@@ -19,7 +19,13 @@ export const PresetButtons: React.FC<PresetButtonsProps> = ({ onPresetSelect }) 
     cool: 'hover:bg-blue-500/20 border-blue-500/30',
     neutral: 'hover:bg-gray-500/20 border-gray-500/30',
     special: 'hover:bg-purple-500/20 border-purple-500/30',
-    quirky: 'hover:bg-pink-500/20 border-pink-500/30'
+    quirky: 'hover:bg-pink-500/20 border-pink-500/30',
+    brand: 'hover:bg-emerald-500/20 border-emerald-500/30',
+    trendy: 'hover:bg-rose-500/20 border-rose-500/30',
+    luxury: 'hover:bg-yellow-500/20 border-yellow-500/30',
+    food: 'hover:bg-amber-500/20 border-amber-500/30',
+    cosmic: 'hover:bg-indigo-500/20 border-indigo-500/30',
+    gaming: 'hover:bg-cyan-500/20 border-cyan-500/30'
   };
 
   const renderColorPreview = (colors: string[]) => {
