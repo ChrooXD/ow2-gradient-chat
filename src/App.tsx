@@ -9,6 +9,7 @@ import { PresetButtons } from './components/PresetButtons';
 import { GradientPreview } from './components/GradientPreview';
 import { FormattedOutput } from './components/FormattedOutput';
 import { IconSelector } from './components/IconSelector';
+import { Footer } from './components/Footer';
 
 // Hooks
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -361,11 +362,14 @@ function App() {
         </main>
 
         {/* Footer */}
-        <footer className="relative mt-16">
-          <div className="absolute bottom-0 right-4 text-xs text-slate-500">
+        <Footer />
+        
+        {/* Made by signature */}
+        <div className="text-center mt-6">
+          <div className="text-xs text-slate-500">
             made by Chroo :)
           </div>
-        </footer>
+        </div>
       </div>
     </div>
   );
