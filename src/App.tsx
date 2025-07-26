@@ -9,7 +9,6 @@ import { PresetButtons } from './components/PresetButtons';
 import { GradientPreview } from './components/GradientPreview';
 import { FormattedOutput } from './components/FormattedOutput';
 import { IconSelector } from './components/IconSelector';
-import { Footer } from './components/Footer';
 
 // Hooks
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -362,14 +361,19 @@ function App() {
         </main>
 
         {/* Footer */}
-        <Footer />
-        
-        {/* Made by signature */}
-        <div className="text-center mt-6">
-          <div className="text-xs text-slate-500">
-            made by Chroo :)
+        <footer className="relative mt-16">
+          <div className="flex justify-between items-end text-xs text-slate-500 px-4">
+            <div className="max-w-md text-left">
+              <p className="mb-1">
+                This site is not affiliated with Blizzard Entertainment. All trademarks referenced herein are the properties of their respective owners.
+              </p>
+              <p>© 2025 Blizzard Entertainment, Inc.</p>
+            </div>
+            <div>
+              made by Chroo :)
+            </div>
           </div>
-        </div>
+        </footer>
       </div>
     </div>
   );
