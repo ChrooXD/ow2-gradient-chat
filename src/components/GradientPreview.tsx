@@ -1,5 +1,6 @@
 import React from 'react';
 import { GradientChar } from '../types';
+import { getIconImagePath } from '../utils/colorUtils';
 
 interface GradientPreviewProps {
   gradientData: GradientChar[];
@@ -8,6 +9,31 @@ interface GradientPreviewProps {
   startColor?: string;
   startAlpha?: number;
 }
+
+// Icon display component for preview
+const PreviewIcon: React.FC<{ iconCode: string }> = ({ iconCode }) => {
+  const imagePath = getIconImagePath(iconCode);
+  
+  return (
+    <img
+      src={imagePath}
+      alt={`Icon ${iconCode}`}
+      className="inline-block w-8 h-8 mx-1 align-middle object-contain"
+      onError={(e) => {
+        // Fallback to showing the code if image fails to load
+        const target = e.target as HTMLElement;
+        target.style.display = 'none';
+        const fallback = target.nextElementSibling as HTMLElement;
+        if (fallback) fallback.style.display = 'inline';
+      }}
+    />
+  );
+};
+
+// Check if a string is an icon code
+const isIconCode = (str: string): boolean => {
+  return /^<TX[C]?[0-9A-Fa-f]+>$/i.test(str);
+};
 
 export const GradientPreview: React.FC<GradientPreviewProps> = ({
   gradientData,
@@ -44,6 +70,38 @@ export const GradientPreview: React.FC<GradientPreviewProps> = ({
     return `rgba(${r}, ${g}, ${b}, ${a})`;
   };
 
+  // Parse text with icons for solid color mode
+  const parseTextForSolidPreview = (inputText: string) => {
+    const iconRegex = /<TX[C]?[0-9A-Fa-f]+>/gi;
+    const parts: Array<{content: string; isIcon: boolean}> = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = iconRegex.exec(inputText)) !== null) {
+      // Add text before the icon (if any)
+      if (match.index > lastIndex) {
+        const textBefore = inputText.substring(lastIndex, match.index);
+        if (textBefore.length > 0) {
+          parts.push({ content: textBefore, isIcon: false });
+        }
+      }
+      
+      // Add the icon
+      parts.push({ content: match[0], isIcon: true });
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add any remaining text after the last icon
+    if (lastIndex < inputText.length) {
+      const remainingText = inputText.substring(lastIndex);
+      if (remainingText.length > 0) {
+        parts.push({ content: remainingText, isIcon: false });
+      }
+    }
+    
+    return parts;
+  };
+
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
       <h2 className="text-2xl font-semibold text-white mb-6">
@@ -75,19 +133,39 @@ export const GradientPreview: React.FC<GradientPreviewProps> = ({
             style={{ wordBreak: 'break-word' }}
           >
             {outputFormat === 'solid' ? (
-              <span style={{ color: colorWithAlpha(startColor, startAlpha) }}>
-                {text}
-              </span>
+              parseTextForSolidPreview(text).map((part, index) => 
+                part.isIcon ? (
+                  <span key={index} className="inline-block">
+                    <PreviewIcon iconCode={part.content} />
+                    <span style={{ display: 'none', color: colorWithAlpha(startColor, startAlpha) }}>
+                      {part.content}
+                    </span>
+                  </span>
+                ) : (
+                  <span key={index} style={{ color: colorWithAlpha(startColor, startAlpha) }}>
+                    {part.content}
+                  </span>
+                )
+              )
             ) : (
-              gradientData.map((item, index) => (
-                <span 
-                  key={index} 
-                  style={{ color: hexToRgba(item.color) }}
-                  className="inline-block"
-                >
-                  {item.char === ' ' ? '\u00A0' : item.char}
-                </span>
-              ))
+              gradientData.map((item, index) => 
+                isIconCode(item.char) ? (
+                  <span key={index} className="inline-block">
+                    <PreviewIcon iconCode={item.char} />
+                    <span style={{ display: 'none', color: hexToRgba(item.color) }}>
+                      {item.char}
+                    </span>
+                  </span>
+                ) : (
+                  <span 
+                    key={index} 
+                    style={{ color: hexToRgba(item.color) }}
+                    className="inline-block"
+                  >
+                    {item.char === ' ' ? '\u00A0' : item.char}
+                  </span>
+                )
+              )
             )}
           </div>
         ) : (
