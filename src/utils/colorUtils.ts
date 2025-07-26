@@ -453,3 +453,38 @@ export const splitFormattedOutput = (formattedOutput: string, maxLength: number 
 
   return chunks;
 }; 
+
+/**
+ * Extract hex filename from icon code for PNG image matching
+ * Examples:
+ * - "<TX0C000000000039D7>" -> "0000000039D7"
+ * - "<TXC0000000001F933>" -> "00000001F933"
+ */
+export const extractHexFromIconCode = (iconCode: string): string => {
+  // Remove the angle brackets and TX0C/TXC prefix
+  const cleaned = iconCode.replace(/[<>]/g, '');
+  
+  let hexPart = '';
+  
+  // Extract hex part after TX0C or TXC
+  if (cleaned.startsWith('TX0C')) {
+    hexPart = cleaned.substring(4); // Remove 'TX0C'
+  } else if (cleaned.startsWith('TXC')) {
+    hexPart = cleaned.substring(3); // Remove 'TXC'
+  } else {
+    // Fallback - return as is if pattern doesn't match
+    return cleaned;
+  }
+  
+  // PNG filenames use only the last 12 characters of the hex value
+  // This handles cases where icon codes might have extra leading zeros
+  return hexPart.length > 12 ? hexPart.slice(-12) : hexPart.padStart(12, '0');
+};
+
+/**
+ * Get the image path for an icon code
+ */
+export const getIconImagePath = (iconCode: string): string => {
+  const hexFilename = extractHexFromIconCode(iconCode);
+  return `/icons/${hexFilename}.png`;
+}; 

@@ -1,6 +1,36 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronDown, Plus, Copy, Check, Search } from 'lucide-react';
 import { ICON_CATEGORIES, IconCategory, IconCode } from '../constants/iconCodes';
+import { getIconImagePath } from '../utils/colorUtils';
+
+// Icon Image Component with fallback handling
+const IconImage: React.FC<{ iconCode: string; iconName: string; className?: string }> = ({ 
+  iconCode, 
+  iconName, 
+  className = "w-8 h-8" 
+}) => {
+  const [imageError, setImageError] = useState(false);
+  const imagePath = getIconImagePath(iconCode);
+
+  if (imageError) {
+    // Fallback to a placeholder when image fails to load
+    return (
+      <div className={`${className} bg-gray-600/50 rounded border border-gray-500/50 flex items-center justify-center`}>
+        <span className="text-gray-400 text-xs font-mono">?</span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={imagePath}
+      alt={`${iconName} icon`}
+      className={`${className} object-contain rounded border border-white/20`}
+      onError={() => setImageError(true)}
+      loading="lazy"
+    />
+  );
+};
 
 interface IconSelectorProps {
   onIconSelect: (iconCode: string) => void;
@@ -132,6 +162,11 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
                  key={icon.code}
                  className="flex items-center justify-between p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors duration-200 group"
                >
+                 {/* Icon Image */}
+                 <div className="flex-shrink-0 mr-3">
+                   <IconImage iconCode={icon.code} iconName={icon.name} />
+                 </div>
+
                  {/* Icon Info */}
                  <div className="flex-1 min-w-0">
                    <div className="text-white text-sm font-medium truncate">
@@ -204,6 +239,11 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
                        key={icon.code}
                        className="flex items-center justify-between p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors duration-200 group"
                      >
+                       {/* Icon Image */}
+                       <div className="flex-shrink-0 mr-3">
+                         <IconImage iconCode={icon.code} iconName={icon.name} />
+                       </div>
+
                        {/* Icon Info */}
                        <div className="flex-1 min-w-0">
                          <div className="text-white text-sm font-medium truncate">
