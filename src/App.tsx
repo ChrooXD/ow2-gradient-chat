@@ -375,6 +375,8 @@ function App() {
             </div>
             <div>
               made by Chroo :)
+              
+              <p>s/o myst for the icon codes</p>
             </div>
           </div>
         </footer>
