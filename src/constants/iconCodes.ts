@@ -245,7 +245,8 @@ export const ICON_CATEGORIES: IconCategory[] = [
       { name: "Scroll Down", code: "<TX0C0000000000005DA1>" },
       { name: "Scroll Up", code: "<TX0C0000000000005DA0>" },
       { name: "Up Arrow", code: "<TX0C0000000000044A6>" },
-      { name: "Y Button", code: "<TX0C0000000000044B2>" }
+      { name: "Y Button", code: "<TX0C0000000000044B2>" },
+      { name: "Left Mouse Button", code: "<TXC0000000000447F>" }
     ]
   }
 ]; 

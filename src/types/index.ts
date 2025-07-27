@@ -16,7 +16,8 @@ export interface GradientChar {
 export interface GradientPreset {
   name: string;
   colors: string[];
-  category?: 'warm' | 'cool' | 'neutral' | 'special' | 'quirky';
+  category?: 'warm' | 'cool' | 'neutral' | 'special' | 'quirky' | 'brand' | 'trendy' | 'food' | 'countries';
+  interpolation?: 'smooth' | 'discrete';
 }
 
 export interface ColorInputProps {

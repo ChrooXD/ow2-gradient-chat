@@ -15,7 +15,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useDebounce } from './hooks/useDebounce';
 
 // Utils & Types
-import { generateGradient, generateMultiColorGradient, generateGradientWithIcons, rgbaToHex, hexToRgba } from './utils/colorUtils';
+import { generateGradient, generateMultiColorGradient, generateGradientWithIcons, generateDiscreteGradientWithIcons, rgbaToHex, hexToRgba } from './utils/colorUtils';
 import { DEFAULT_COLORS, KEYBOARD_SHORTCUTS } from './constants/gradients';
 import { GradientPreset } from './types';
 
@@ -42,6 +42,10 @@ function App() {
   // Memoized gradient calculation
   const gradientData = useMemo(() => {
     if (selectedPreset) {
+      // Use discrete interpolation for flag gradients to avoid intermediate colors
+      if (selectedPreset.interpolation === 'discrete') {
+        return generateDiscreteGradientWithIcons(debouncedText, selectedPreset.colors, startAlpha, endAlpha);
+      }
       return generateGradientWithIcons(debouncedText, selectedPreset.colors, startAlpha, endAlpha);
     }
     return generateGradientWithIcons(debouncedText, [startColor, endColor], startAlpha, endAlpha);

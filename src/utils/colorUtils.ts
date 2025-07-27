@@ -295,6 +295,120 @@ export const parseTextWithIcons = (text: string): TextSegment[] => {
 };
 
 /**
+ * Generate discrete gradient with separate segments for each color (ideal for flags)
+ */
+export const generateDiscreteGradient = (
+  text: string,
+  colors: string[],
+  startAlpha: number = 255,
+  endAlpha: number = 255
+): GradientChar[] => {
+  if (!text || text.length === 0) return [];
+  if (colors.length < 1) return [];
+  
+  // Validate all colors
+  const validColors = colors.filter(isValidHexColor);
+  if (validColors.length < 1) {
+    console.warn('No valid colors provided');
+    return text.split('').map(char => ({ char, color: '000000FF' }));
+  }
+  
+  const length = text.length;
+  
+  // For single character, use first color
+  if (length === 1) {
+    const rgba = hexToRgba(validColors[0], startAlpha);
+    return [{ char: text[0], color: rgbaToHex(rgba.r, rgba.g, rgba.b, rgba.a) }];
+  }
+  
+  return text.split('').map((char, index) => {
+    // Calculate which color segment this character belongs to
+    const segmentSize = length / validColors.length;
+    const segmentIndex = Math.min(
+      Math.floor(index / segmentSize),
+      validColors.length - 1
+    );
+    
+    // Use the color for this segment without interpolation
+    const rgba = hexToRgba(validColors[segmentIndex], startAlpha);
+    const colorWithAlpha = rgbaToHex(rgba.r, rgba.g, rgba.b, rgba.a);
+    
+    return {
+      char,
+      color: colorWithAlpha
+    };
+  });
+};
+
+/**
+ * Generate discrete gradient for text with icons, preserving icon codes
+ */
+export const generateDiscreteGradientWithIcons = (
+  text: string,
+  colors: string[],
+  startAlpha: number = 255,
+  endAlpha: number = 255
+): GradientChar[] => {
+  const segments = parseTextWithIcons(text);
+  const result: GradientChar[] = [];
+  
+  // First, collect all non-icon text to calculate gradient positions
+  const nonIconSegments = segments.filter(segment => !segment.isIcon);
+  const totalNonIconLength = nonIconSegments.reduce((sum, segment) => sum + segment.content.length, 0);
+  
+  if (totalNonIconLength === 0) {
+    // Only icons, no gradient needed
+    return segments.map(segment => ({ char: segment.content, color: '' }));
+  }
+  
+  // Validate colors
+  const validColors = colors.filter(isValidHexColor);
+  if (validColors.length < 1) {
+    console.warn('No valid colors provided');
+    return segments.flatMap(segment => 
+      segment.isIcon 
+        ? [{ char: segment.content, color: '' }]
+        : segment.content.split('').map(char => ({ char, color: '000000FF' }))
+    );
+  }
+  
+  let nonIconCharIndex = 0;
+  
+  for (const segment of segments) {
+    if (segment.isIcon) {
+      // Add icon as-is without any color formatting
+      result.push({ char: segment.content, color: '' });
+    } else {
+      // Apply discrete gradient to regular text
+      const segmentGradient = segment.content.split('').map((char, localIndex) => {
+        const globalIndex = nonIconCharIndex + localIndex;
+        
+        // Calculate which color segment this character belongs to
+        const segmentSize = totalNonIconLength / validColors.length;
+        const segmentIndex = Math.min(
+          Math.floor(globalIndex / segmentSize),
+          validColors.length - 1
+        );
+        
+        // Use the color for this segment without interpolation
+        const rgba = hexToRgba(validColors[segmentIndex], startAlpha);
+        const colorWithAlpha = rgbaToHex(rgba.r, rgba.g, rgba.b, rgba.a);
+        
+        return {
+          char,
+          color: colorWithAlpha
+        };
+      });
+      
+      result.push(...segmentGradient);
+      nonIconCharIndex += segment.content.length;
+    }
+  }
+  
+  return result;
+};
+
+/**
  * Generate gradient for text with icons, preserving icon codes
  */
 export const generateGradientWithIcons = (

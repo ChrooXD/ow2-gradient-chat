@@ -66,6 +66,16 @@ export const GRADIENT_PRESETS: GradientPreset[] = [
   { name: 'Strawberry Milk', colors: ['#FFB6C1', '#FFFFFF', '#FF69B4'], category: 'food' },
   { name: 'Mint Chocolate', colors: ['#98FB98', '#3C2415', '#FFFFFF'], category: 'food' },
   
+  // Countries
+  { name: 'France', colors: ['#002395', '#FFFFFF', '#ED2939'], category: 'countries', interpolation: 'discrete' },
+  { name: 'Estonia', colors: ['#0072CE', '#000000', '#FFFFFF'], category: 'countries', interpolation: 'discrete' },
+  { name: 'Germany', colors: ['#000000', '#DE0000', '#FFCE00'], category: 'countries', interpolation: 'discrete' },
+  { name: 'Italy', colors: ['#009246', '#FFFFFF', '#CE2B37'], category: 'countries', interpolation: 'discrete' },
+  { name: 'Ukraine', colors: ['#005BBB', '#FFD500'], category: 'countries', interpolation: 'discrete' },
+  { name: 'Brazil', colors: ['#009739', '#FEDD00', '#012169'], category: 'countries', interpolation: 'discrete' },
+  { name: 'Spain', colors: ['#AA151B', '#F1BF00'], category: 'countries', interpolation: 'discrete' },
+  { name: 'Poland', colors: ['#FFFFFF', '#DC143C'], category: 'countries', interpolation: 'discrete' },
+  { name: 'Portugal', colors: ['#006600', '#FF0000'], category: 'countries', interpolation: 'discrete' },
 
   
 ];
