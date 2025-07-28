@@ -170,6 +170,7 @@ export const ICON_CATEGORIES: IconCategory[] = [
   {
     name: "Gallery",
     icons: [
+      { name: "Achievement Trophy", code: "<TXC000000000190DF>" },
       { name: "All-Star DPS Banner", code: "<TXC00000000062AD8>" },
       { name: "Blizzard Special", code: "<TX0C0000000000ABAC>" },
       { name: "Competitive Points", code: "<TX0C0000000000906E>" },
@@ -177,6 +178,7 @@ export const ICON_CATEGORIES: IconCategory[] = [
       { name: "Locked Icon", code: "<TX0C000000000012F3>" },
       { name: "Long Blue Bar", code: "<TXC0000000001F47A>" },
       { name: "Long Red Bar", code: "<TXC00000000001344>" },
+      { name: "Mythic Points", code: "<TXC0000000004C5D2>" },
       { name: "Overwatch Coins", code: "<TX0C00000000008E02>" },
       { name: "Overwatch Cursor", code: "<TXC0000000002DD21>" },
       { name: "Overwatch League Tokens", code: "<TX0C00000000013DCC>" },
