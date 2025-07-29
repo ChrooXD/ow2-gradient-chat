@@ -1,3 +1,160 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-variation-settings: normal;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Improve readability with better letter spacing for headings */
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.025em;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  
+  /* Main title enhancement */
+  h1 {
+    font-weight: 700;
+    letter-spacing: -0.04em;
+  }
+  
+  /* Optimize monospace font rendering */
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', Consolas, Monaco, 'Courier New', monospace;
+    font-feature-settings: 'liga' 0, 'calt' 0;
+    font-variant-ligatures: none;
+  }
+  
+  /* Enhanced button and interactive element typography */
+  button {
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  
+  /* Improved label typography */
+  label {
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  
+  /* Professional Scrollbar Styling */
+  /* Modern scrollbar for webkit browsers (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin: 2px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  ::-webkit-scrollbar-thumb:active {
+    background: rgba(255, 255, 255, 0.4);
+  }
+  
+  /* Hide scrollbar corner */
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  
+  /* Standard scrollbar properties for Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+  }
+  
+  /* Enhanced scrollbar for specific containers */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) rgba(255, 255, 255, 0.08);
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 6px;
+    border: none;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.35);
+  }
+}
+
+@layer components {
+  /* Professional input styling */
+  .professional-input {
+    font-feature-settings: 'tnum', 'lnum';
+  }
+  
+  /* Professional monospace for code output */
+  .professional-mono {
+    font-feature-settings: 'liga' 0, 'calt' 0, 'tnum', 'lnum';
+    letter-spacing: -0.01em;
+  }
+  
+  /* Smooth scrolling behavior */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+  
+  /* Professional scrollable container */
+  .professional-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+    scroll-behavior: smooth;
+  }
+  
+  .professional-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .professional-scroll::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin: 4px;
+  }
+  
+  .professional-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.15));
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .professional-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.25));
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+  }
+}

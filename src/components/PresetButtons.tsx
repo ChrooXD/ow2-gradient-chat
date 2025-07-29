@@ -69,7 +69,7 @@ export const PresetButtons: React.FC<PresetButtonsProps> = ({ onPresetSelect }) 
       <label className="block text-sm font-medium text-slate-300 mb-3">
         Quick Presets
       </label>
-      <div className="space-y-2 max-h-40 overflow-y-auto">
+      <div className="space-y-2 max-h-40 overflow-y-auto professional-scroll">
         {Object.entries(groupedPresets).map(([category, presets]) => (
           <div key={category} className="space-y-1">
             <h4 className="text-xs text-slate-400 uppercase tracking-wider font-medium">
