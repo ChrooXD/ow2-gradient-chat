@@ -200,7 +200,7 @@ function App() {
         <header className="text-center mb-12">
           <div className="mb-4">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              OW2 Chat Gradient Text Generator
+              Icon & Gradient Generator
             </h1>
           </div>
           <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto">

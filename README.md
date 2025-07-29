@@ -1,4 +1,4 @@
-# OW2 Chat Gradient Text Generator
+# OW2 Icon & Gradient Generator
 
 A web application for generating gradient text and adding icon codes for Overwatch 2 chat.
 
