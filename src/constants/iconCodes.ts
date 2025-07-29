@@ -176,8 +176,6 @@ export const ICON_CATEGORIES: IconCategory[] = [
       { name: "Competitive Points", code: "<TX0C0000000000906E>" },
       { name: "Halloween Terror", code: "<TX0C0000000000ABAB>" },
       { name: "Locked Icon", code: "<TX0C000000000012F3>" },
-      { name: "Long Blue Bar", code: "<TXC0000000001F47A>" },
-      { name: "Long Red Bar", code: "<TXC00000000001344>" },
       { name: "Mythic Points", code: "<TXC0000000004C5D2>" },
       { name: "Overwatch Coins", code: "<TX0C00000000008E02>" },
       { name: "Overwatch Cursor", code: "<TXC0000000002DD21>" },
@@ -259,7 +257,6 @@ export const ICON_CATEGORIES: IconCategory[] = [
   {
     name: "Unspecified",
     icons: [
-      { name: "All-Star DPS Banner", code: "<TXC00000000062AD8>" },
       { name: "Arcade", code: "<TXC00000000017C9B>" },
       { name: "Asterisk", code: "<TXC0000000001F926>" },
       { name: "Blizzard Special", code: "<TX0C0000000000ABAC>" },
@@ -282,7 +279,6 @@ export const ICON_CATEGORIES: IconCategory[] = [
       { name: "Fire", code: "<TXC0000000001F92F>" },
       { name: "Flag", code: "<TXC0000000001F930>" },
       { name: "Flat Ring", code: "<TXC0000000001F931>" },
-      { name: "Gradient", code: "<TX0C00000000021CC9>" },
       { name: "Halloween Terror", code: "<TX0C0000000000ABAB>" },
       { name: "Hand Soap", code: "<TXC0000000001F942>" },
       { name: "Healing", code: "<TXC000000000039DD>" },
@@ -292,7 +288,6 @@ export const ICON_CATEGORIES: IconCategory[] = [
       { name: "Kill/Death", code: "<TXC000000000015BB>" },
       { name: "Lightning Bolt", code: "<TXC0000000001F927>" },
       { name: "Locked Icon", code: "<TX0C000000000012F3>" },
-      { name: "Long Red Bar", code: "<TXC00000000001344>" },
       { name: "Lúcioball", code: "<TXC0000000000F76A>" },
       { name: "Melee Kill", code: "<TXC0000000000E613>" },
       { name: "Microphone", code: "<TXC00000000007114>" },
@@ -485,6 +480,25 @@ export const ICON_CATEGORIES: IconCategory[] = [
       { name: "Tracer Slipstream Poster", code: "<TXC0000000000501E>" },
       { name: "Winston 1", code: "<TXC00000000006275>" },
       { name: "Zenyatta 1", code: "<TXC0000000000849B>" },
+    ]
+  },
+  {
+    name: "Colors and Banners",
+    icons: [
+      { name: "All-Star DPS Banner", code: "<TXC00000000062AD8>" },
+      { name: "Black Square", code: "<TX0C0000000000000B>" },
+      { name: "Dark Grey Square", code: "<TX0C0000000000000D>" },
+      { name: "Gradient", code: "<TX0C00000000021CC9>" },
+      { name: "Khaki Square", code: "<TX0C0000000000000C>" },
+      { name: "Light Grey Square", code: "<TX0C0000000000000E>" },
+      { name: "Long Blue Bar", code: "<TXC0000000001F47A>" },
+      { name: "Long Red Bar", code: "<TXC00000000001344>" },
+      { name: "Matrix", code: "<TXC00000000001E70>" },
+      { name: "Mysterious Blue Orb", code: "<TXC00000000003A2D>" },
+      { name: "Purple Square", code: "<TXC00000000000002>" },
+      { name: "Rainbow Bar", code: "<TXC00000000000003>" },
+      { name: "TV Static", code: "<TXC00000000000EE9>" },
+      { name: "White Square", code: "<TX0C0000000000000A>" },
     ]
   }
 ];
