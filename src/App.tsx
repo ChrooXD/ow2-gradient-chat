@@ -18,6 +18,7 @@ import { useDebounce } from './hooks/useDebounce';
 import { generateGradient, generateMultiColorGradient, generateGradientWithIcons, generateDiscreteGradientWithIcons, rgbaToHex, hexToRgba } from './utils/colorUtils';
 import { DEFAULT_COLORS, KEYBOARD_SHORTCUTS } from './constants/gradients';
 import { GradientPreset } from './types';
+import { trackColorInteraction, trackUIInteraction, trackEvent } from './utils/analytics';
 
 type OutputFormat = 'gradient' | 'solid';
 
@@ -104,6 +105,9 @@ function App() {
     setEndAlpha(255);
     setSelectedPreset(null);
     setOutputFormat('gradient');
+    
+    // Track reset action
+    trackUIInteraction('click', 'reset_all');
   };
 
   const handlePresetSelect = (preset: GradientPreset) => {
@@ -113,6 +117,9 @@ function App() {
       setStartColor(preset.colors[0]);
       setEndColor(preset.colors[preset.colors.length - 1]);
     }
+    
+    // Track preset selection
+    trackColorInteraction('pick', 'gradient', preset.name);
   };
 
   const handleColorChange = (colorType: 'start' | 'end', color: string) => {
@@ -123,6 +130,31 @@ function App() {
     } else {
       setEndColor(color);
     }
+    
+    // Track manual color changes
+    trackColorInteraction('pick', 'custom', `${colorType}_color`);
+  };
+
+  const handleTextChange = (newText: string) => {
+    setText(newText);
+    
+    // Track text input engagement (debounced to avoid too many events)
+    if (newText.length > 0 && newText.length % 10 === 0) {
+      trackEvent('text_input', 'user_engagement', `length_${newText.length}`);
+    }
+    
+    // Track when user adds icons
+    const iconMatches = newText.match(/<TX[C]?[0-9A-Fa-f]+>/gi);
+    if (iconMatches && iconMatches.length > 0) {
+      trackEvent('icon_usage', 'content_creation', `icons_${iconMatches.length}`);
+    }
+  };
+
+  const handleOutputFormatChange = (format: OutputFormat) => {
+    setOutputFormat(format);
+    
+    // Track format change
+    trackUIInteraction('toggle', 'output_format', format);
   };
 
   const focusTextInput = () => {
@@ -229,7 +261,7 @@ function App() {
                 <TextInput
                   ref={textInputRef}
                   value={text}
-                  onChange={setText}
+                  onChange={handleTextChange}
                   placeholder="Type your text here..."
                 />
 
@@ -240,7 +272,7 @@ function App() {
                   </label>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => setOutputFormat('gradient')}
+                      onClick={() => handleOutputFormatChange('gradient')}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                         outputFormat === 'gradient'
                           ? 'bg-blue-600 text-white shadow-lg'
@@ -250,7 +282,7 @@ function App() {
                       Gradient
                     </button>
                     <button
-                      onClick={() => setOutputFormat('solid')}
+                      onClick={() => handleOutputFormatChange('solid')}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                         outputFormat === 'solid'
                           ? 'bg-blue-600 text-white shadow-lg'

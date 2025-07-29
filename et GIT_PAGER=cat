@@ -1,0 +1,7 @@
+warning: LF will be replaced by CRLF in index.html.
+The file will have its original line endings in your working directory
+index.html
+src/components/ErrorBoundary.tsx
+src/components/PresetButtons.tsx
+src/index.css
+tailwind.config.js

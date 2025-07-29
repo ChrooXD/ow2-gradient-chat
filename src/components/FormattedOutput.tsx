@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Copy, Check, Download, AlertTriangle } from 'lucide-react';
 import { COPY_FEEDBACK_DURATION } from '../constants/gradients';
 import { splitFormattedOutput } from '../utils/colorUtils';
+import { trackCopyAction, trackUIInteraction } from '../utils/analytics';
 
 interface FormattedOutputProps {
   formattedOutput: string;
@@ -30,6 +31,12 @@ export const FormattedOutput: React.FC<FormattedOutputProps> = ({
       setCopiedIndex(index);
       setCopyError(null);
       setTimeout(() => setCopiedIndex(null), COPY_FEEDBACK_DURATION);
+      
+      // Track the copy action
+      trackCopyAction(
+        index === -1 ? 'full_output' : `chunk_${index + 1}`,
+        outputFormat
+      );
     } catch (err) {
       console.error('Failed to copy text: ', err);
       setCopyError('Failed to copy to clipboard');
@@ -49,6 +56,9 @@ export const FormattedOutput: React.FC<FormattedOutputProps> = ({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    
+    // Track the download action
+    trackUIInteraction('download', 'formatted_output', outputFormat);
   };
 
   const getFormatInfo = () => {
