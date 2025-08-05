@@ -9,6 +9,7 @@ import { PresetButtons } from './components/PresetButtons';
 import { GradientPreview } from './components/GradientPreview';
 import { FormattedOutput } from './components/FormattedOutput';
 import { IconSelector } from './components/IconSelector';
+import { DisclaimerPopup } from './components/DisclaimerPopup';
 
 // Hooks
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -33,6 +34,7 @@ function App() {
   const [endAlpha, setEndAlpha] = useState(255); // Fully opaque
   const [selectedPreset, setSelectedPreset] = useState<GradientPreset | null>(null);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>('gradient');
+  const [showDisclaimer, setShowDisclaimer] = useState(true);
 
   // Ref for text input to track cursor position
   const textInputRef = useRef<HTMLInputElement>(null);
@@ -159,6 +161,10 @@ function App() {
 
   const focusTextInput = () => {
     textInputRef.current?.focus();
+  };
+
+  const handleDisclaimerClose = () => {
+    setShowDisclaimer(false);
   };
 
   // Check for consecutive icons without text between them
@@ -413,6 +419,12 @@ function App() {
           </div>
         </footer>
       </div>
+
+      {/* Disclaimer Popup */}
+      <DisclaimerPopup 
+        isOpen={showDisclaimer} 
+        onClose={handleDisclaimerClose} 
+      />
     </div>
   );
 }
