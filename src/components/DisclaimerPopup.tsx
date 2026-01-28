@@ -1,5 +1,12 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface DisclaimerPopupProps {
   isOpen: boolean;
@@ -7,59 +14,43 @@ interface DisclaimerPopupProps {
 }
 
 export const DisclaimerPopup: React.FC<DisclaimerPopupProps> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-800 rounded-lg border border-slate-700 shadow-xl max-w-lg w-full relative">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 text-slate-400 hover:text-white transition-colors"
-          aria-label="Close disclaimer"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="text-center">
+            Since the August 5, 2025 patch
+          </DialogTitle>
+          <DialogDescription className="text-center">
+            This website is no longer functional to generate displayable gradients and icons in the Overwatch 2 chat
+          </DialogDescription>
+        </DialogHeader>
 
-        {/* Content */}
-        <div className="p-4 space-y-4 pt-8">
-          {/* Disclaimer Text */}
-          <div className="text-center space-y-2">
-            <p className="text-white font-medium">
-              Since the August 5, 2025 patch
-            </p>
-            <p className="text-slate-300 text-sm">
-              This website is no longer functional to generate displayable gradients and icons in the Overwatch 2 chat
-            </p>
-          </div>
-
+        <div className="space-y-4">
           {/* Screenshot */}
           <div className="flex justify-center">
-            <img 
-              src="/ripow2chat.png" 
+            <img
+              src="/ripow2chat.png"
               alt="Overwatch 2 August 5, 2025 patch screenshot"
-              className="max-w-full h-auto rounded border border-slate-600"
+              className="max-w-full h-auto rounded border border-border"
             />
           </div>
 
           {/* Thank you message */}
           <div className="text-center">
-            <p className="text-slate-300 text-sm">
+            <p className="text-muted-foreground text-sm">
               Thank you for using this website! &lt;3
             </p>
           </div>
 
           {/* Close Button */}
           <div className="flex justify-center pt-2">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded transition-colors"
-            >
+            <Button variant="secondary" onClick={onClose}>
               Close
-            </button>
+            </Button>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
